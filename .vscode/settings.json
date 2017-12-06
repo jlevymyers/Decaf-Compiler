@@ -1,0 +1,23 @@
+{
+    "files.associations": {
+        "tuple": "cpp",
+        "type_traits": "cpp",
+        "utility": "cpp",
+        "iostream": "cpp",
+        "__bit_reference": "cpp",
+        "algorithm": "cpp",
+        "bitset": "cpp",
+        "chrono": "cpp",
+        "map": "cpp",
+        "unordered_map": "cpp",
+        "__config": "cpp",
+        "__nullptr": "cpp",
+        "exception": "cpp",
+        "initializer_list": "cpp",
+        "new": "cpp",
+        "stdexcept": "cpp",
+        "typeinfo": "cpp",
+        "stack": "cpp",
+        "vector": "cpp"
+    }
+}
