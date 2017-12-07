@@ -1,5 +1,5 @@
-#ifndef RESOLVE_SCOPE_HH
-# define RESOLVE_SCOPE_HH
+#ifndef BUILD_SYM_HH
+# define BUILD_SYM_HH
 
 # include "visitor.hh"
 # include <iostream>
@@ -7,19 +7,13 @@
 
 using namespace ast;
 
-class resolve_scope : public visitor {
-private:
-    std::stack<scope*> scope_stack; 
-    scope* resolve_outer_scope;
+class build_symbols: public visitor {
 public:
 
-    resolve_scope();
-    ~resolve_scope();
-
-    void push_scope(scope* s);
-    void pop_scope(scope *s);
-    scope* get_current_scope();
-    scope* get_outer_scope();
+    build_symbols();
+    ~build_symbols();
+ 
+    void build(scope* s);
 
     void visit_ast(ast_node* n) ;
     void visit_children(ast_node* n) ; 
@@ -40,7 +34,6 @@ public:
     void visit_type_node(type_node *n); 
     void visit_class_type(class_type *n); 
     void visit_array_type_node(array_type_node *n); 
-    //void visit_primative_type(primative_type *n); 
     void visit_primative_int(primative_int *n); 
     void visit_primative_bool(primative_bool *n); 
     void visit_primative_char(primative_char *n); 
@@ -49,7 +42,6 @@ public:
     void visit_init_node(init_node *n); 
     void visit_meta_node(meta_node *n); 
     void visit_statement_list(statement_list *n); 
-    //void visit_statement;  ABSTRACT 
     void visit_empty_stat(empty_stat *n); 
     void visit_decl_stat(decl_stat *n); 
     void visit_local_node(local_node *n); 
@@ -79,4 +71,4 @@ public:
     void visit_expression_list(expression_list *n); 
 };
 
-#endif // ! RESOLVE_SCOPE_HH
+#endif // ! BUILD_SYM_HH

@@ -12,6 +12,38 @@ class visitor;
 
 namespace ast {
 
+    enum mods {
+	MOD_NONE = 0,
+	MOD_STATIC,
+	MOD_PUBLIC,
+	MOD_PRIVATE,
+	MOD_PROTECTED
+};
+
+enum symbol_type {
+	SYM_NONE = 0, 
+	SYM_FORMAL_ARG, 
+	SYM_FIELD,
+	SYM_LOCAL_VAR,
+	SYM_CLASS,
+	SYM_CTOR,
+	SYM_METHOD
+};
+
+enum type_kind {
+	TYPE_NONE = 0, 
+	TYPE_BOOL,
+	TYPE_CHAR, 
+	TYPE_INT, 
+	TYPE_VOID,
+	TYPE_CLASS,
+	TYPE_NULL,
+	TYPE_INIT,
+	TYPE_ARRAY,
+	TYPE_METHOD,
+	TYPE_META
+};
+
 class ast_node {
 private: 
     std::vector<ast_node*> ast_children;

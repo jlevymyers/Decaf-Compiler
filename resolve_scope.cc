@@ -1,6 +1,8 @@
 # include "resolve_scope.hh"
 
-resolve_scope::resolve_scope(): visitor(){}
+resolve_scope::resolve_scope(): visitor(){
+    this -> resolve_outer_scope = new outer_scope();
+}
 resolve_scope::~resolve_scope(){}
 
 
@@ -10,9 +12,14 @@ void resolve_scope::push_scope(scope* s){
 void resolve_scope::pop_scope(scope *s){
     this -> scope_stack.pop(); 
 }
-scope* resolve_scope::current_scope(){
+scope* resolve_scope::get_current_scope(){
     return this -> scope_stack.top();
 }
+
+scope* resolve_scope::get_outer_scope(){
+    return this -> resolve_outer_scope;
+}
+
 
 void resolve_scope::visit_children(ast_node* n){
     n -> visit_children(this);
@@ -30,12 +37,14 @@ void resolve_scope::visit_class_list(class_list* n){
     visit_children(n);
 }
 void resolve_scope::visit_class_node(class_node *n){
+    this -> get_outer_scope() -> add_symbol(n);
     visit_children(n);
-}  
+} 
 
 void resolve_scope::visit_member_list(member_list *n){
     n -> set_parent_scope(this -> resolve_outer_scope);    
     n -> set_super_scope(n -> get_super_scope());
+    n -> set_outer_scope(this -> resolve_outer_scope);
     std::cout << "resolving member scope" << std::endl;
     this -> scope_stack.push(n);
     visit_children(n);
@@ -49,26 +58,31 @@ void resolve_scope::visit_field_decl(field_decl *n){
     visit_children(n);
 }
 void resolve_scope::visit_field_node(field_node *n){
+    this -> get_current_scope() -> add_symbol(n);
     visit_children(n);
 }
 void resolve_scope::visit_method_node(method_node *n){
+    this -> get_current_scope() -> add_symbol(n);
     visit_children(n);
 }
 void resolve_scope::visit_method_body(method_body *n){
     n -> set_super_scope(NULL);
-    n -> set_parent_scope(this -> current_scope()); 
+    n -> set_parent_scope(this -> get_current_scope()); 
+    n -> set_outer_scope(this -> resolve_outer_scope);
     std::cout << "resolving method scope" << std::endl;
     this -> push_scope(n);
     visit_children(n);
     this -> pop_scope(n);
 }
 void resolve_scope::visit_constructor_node(constructor_node *n){
+    this -> get_current_scope() -> add_symbol(n);
     visit_children(n);
 }
 void resolve_scope::visit_formal_list(formal_list *n){
     visit_children(n);
 }
 void resolve_scope::visit_formal_node(formal_node *n){
+    this -> get_current_scope() -> add_symbol(n);
     visit_children(n);
 }
 void resolve_scope::visit_type_node(type_node *n){
@@ -113,6 +127,7 @@ void resolve_scope::visit_decl_stat(decl_stat *n){
     visit_children(n);
 }
 void resolve_scope::visit_local_node(local_node *n){
+    this -> get_current_scope() -> add_symbol(n);
     visit_children(n); 
 }
 void resolve_scope::visit_if_stat(if_stat *n){
@@ -138,9 +153,10 @@ void resolve_scope::visit_block_stat(block_stat *n) {
     }
 
 void resolve_scope::visit_block_node(block_node *n) { 
-    n -> set_parent_scope(this -> current_scope()); 
+    n -> set_parent_scope(this -> get_current_scope()); 
     n -> set_super_scope(NULL);
-    std::cout << "resolving block scope" << std::endl;
+    n -> set_outer_scope(this -> resolve_outer_scope);
+    std::cout << "resolving blockscope" << std::endl;
     this -> push_scope(n);
     visit_children(n);
     this -> pop_scope(n);

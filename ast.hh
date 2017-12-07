@@ -15,8 +15,6 @@
 
 namespace ast
 {
-
-
 //forward dec  lare AST
 class variable;
 class class_list;
@@ -71,41 +69,9 @@ class expression_list;
 
 /* method modifiers */  
 
-enum mods {
-	MOD_NONE = 0,
-	MOD_STATIC,
-	MOD_PUBLIC,
-	MOD_PRIVATE,
-	MOD_PROTECTED
-};
-
-enum symbol_type {
-	SYM_NONE = 0, 
-	SYM_FORMAL_ARG, 
-	SYM_FIELD,
-	SYM_LOCAL_VAR,
-	SYM_CLASS,
-	SYM_CTOR,
-	SYM_METHOD
-};
-
-enum type_kind {
-	TYPE_NONE = 0, 
-	TYPE_BOOL,
-	TYPE_CHAR, 
-	TYPE_INT, 
-	TYPE_VOID,
-	TYPE_CLASS,
-	TYPE_NULL,
-	TYPE_INIT,
-	TYPE_ARRAY,
-	TYPE_METHOD,
-	TYPE_META
-};
-
 class outer_scope : public scope {
 public:
-	outer_scope(): scope(){}
+	outer_scope();
 	void accept(visitor *v);
 };
 
@@ -114,8 +80,8 @@ private:
 	int offset; 
 public:
 	virtual ~variable(){}
-	variable(int mod, std::string id, type_node *t);
-    variable(int mod, std::string id);
+	variable(int mod, std::string id, symbol_type sym_type, type_node *t);
+    variable(int mod, std::string id, symbol_type sym_type);
 	int get_offset(); 
 	int set_offset(int off);
 	type_node* getType(){
@@ -135,6 +101,10 @@ public:
 
 class class_node : public symbol {
 public:
+    class_node(const class_node &obj): symbol(obj){
+        std::cout << "copying" << std::endl;
+    }
+
 	void accept(visitor *v);
 	type_node* get_type();
 	scope* get_scope(){
@@ -146,8 +116,8 @@ public:
 
 class member_list : public scope {
 public:
+	member_list();
 	void accept(visitor *v);
-	member_list(): scope(){}; 
 };
 
 //NOTE: use Object
@@ -180,8 +150,7 @@ public:
 	void accept(visitor *v);
 	expression *get_init();
 
-	//MODIFIERS SHOULD BE SET BE PARSER -- easier parsing
-	field_node(std::string id, int count): count(count), variable(MOD_NONE, id){}
+	field_node(std::string id, int count): count(count), variable(MOD_NONE, id, SYM_FIELD){}
 };
 
 class method_node : public symbol {
@@ -190,6 +159,8 @@ private:
 	int modifiers;
 public:
 	void accept(visitor *v);
+	//constructors 
+	method_node(int modifiers, std::string id, symbol_type sym_type, type_node *type, method_body *body); 
 	method_node(int modifiers, std::string id, type_node *type, method_body *body); 
 };
 
@@ -371,8 +342,8 @@ public:
 };
 
 class block_node : public scope {
-	public: 
-	block_node(): scope(){}
+public: 
+	block_node();
 	void accept(visitor *v);  
 };
 

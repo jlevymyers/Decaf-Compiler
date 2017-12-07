@@ -5,6 +5,8 @@ using namespace ast;
 
 //CLASS LIST
 
+outer_scope::outer_scope(): scope(){}
+
 void outer_scope::accept(visitor *v){
 	v -> visit_outer_scope(this);
 }
@@ -36,7 +38,7 @@ void type_node::accept(visitor *v){
 
 //CLASS 
 
-class_node::class_node(std::string id, super_node *super, member_list *mlist): symbol(MOD_PUBLIC, id, super, mlist) {}
+class_node::class_node(std::string id, super_node *super, member_list *mlist): symbol(MOD_PUBLIC, id, SYM_CLASS, super, mlist) {}
 
 void class_node::accept(::visitor *n) {
 	n -> visit_class_node(this);
@@ -51,6 +53,8 @@ super_node* class_node::get_super(){
 }
 
 //MEMBER LIST 
+
+member_list::member_list(): scope(){};
 
 void member_list::accept(::visitor *n){
 	n -> visit_member_list(this);
@@ -91,7 +95,10 @@ void field_node::accept(visitor *n){
 
 
 //METHOD
-method_node::method_node(int mod, std::string id, type_node *type, method_body *body): symbol(mod, id, type, body){}
+method_node::method_node(int mod, std::string id, type_node *type, method_body *body): symbol(mod, id, SYM_METHOD, type, body){}
+//constructor
+method_node::method_node(int mod, std::string id, symbol_type sym_type, type_node *type, method_body *body): symbol(mod, id, sym_type, type, body){}
+
 void method_node::accept(visitor *n){
 	n -> visit_method_node(this);
 }
@@ -105,7 +112,7 @@ void method_body::accept(visitor *n){
 
 //CONSTRUCTOR
 
-constructor_node::constructor_node(int modifiers, std::string id, method_body *body): method_node(modifiers, id, new class_type(id), body){}
+constructor_node::constructor_node(int modifiers, std::string id, method_body *body): method_node(modifiers, id, SYM_CTOR, new class_type(id), body){}
 
 void constructor_node::accept(visitor *n){
 	n -> visit_constructor_node(this);
@@ -119,7 +126,7 @@ void formal_list::accept(visitor *n){
 }
 
 //FORMAL ARGUMENT
-formal_node::formal_node(type_node* type, std::string id): variable(MOD_PUBLIC, id, type){}
+formal_node::formal_node(type_node* type, std::string id): variable(MOD_PUBLIC, id, SYM_FORMAL_ARG, type){}
 void formal_node::accept(visitor *n){
 	n -> visit_formal_node(this);
 }
@@ -197,7 +204,7 @@ void statement_list::accept(visitor *n){
 	 this -> insert_child(type);
  }
 
-local_node::local_node(std::string id, int count): id(id), count(count), variable(MOD_PUBLIC, id) {}
+local_node::local_node(std::string id, int count): id(id), count(count), variable(MOD_PUBLIC, id, SYM_LOCAL_VAR) {}
 void local_node::accept(visitor *n){
 	n -> visit_local_node(this);
 }
@@ -241,6 +248,8 @@ block_stat::block_stat(statement_list *stats): statement(stats){}
 void block_stat::accept(visitor *v){
 	v -> visit_block_stat(this);
 }
+
+block_node::block_node(): scope(){}
 
 void block_node::accept(visitor *v){
 	v -> visit_block_node(this);
@@ -321,8 +330,8 @@ expression* expression_list::get_expression(int index){
 
 // VARIABLE 
 
-variable::variable(int mod, std::string id, type_node *t): symbol(mod, id, t){}
-variable::variable(int mod, std::string id): symbol(mod, id){}
+variable::variable(int mod, std::string id, symbol_type sym_type, type_node *t): symbol(mod, id, sym_type, t){}
+variable::variable(int mod, std::string id, symbol_type sym_type): symbol(mod, id, sym_type){}
 void variable::set_type(type_node *type){
 	this -> replace_child(0, type);
 }

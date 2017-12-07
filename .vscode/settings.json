@@ -30,6 +30,9 @@
         "functional": "cpp",
         "limits": "cpp",
         "memory": "cpp",
-        "ratio": "cpp"
+        "ratio": "cpp",
+        "deque": "cpp",
+        "list": "cpp",
+        "string": "cpp"
     }
 }

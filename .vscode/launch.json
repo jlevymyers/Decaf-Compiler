@@ -8,7 +8,7 @@
             "name": "(lldb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/calc++.out",
+            "program": "${workspaceFolder}/decaf",
             "args": [
                 "-p",
                 "-s",

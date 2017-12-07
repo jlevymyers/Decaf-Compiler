@@ -6,6 +6,9 @@
 #include "parser.hh"
 # include "print_visitor.hh"
 # include "resolve_scope.hh"
+# include "build_symbols.hh"
+
+
 
 // # include "symbol_table.hh"
 # include "parser.hh"
