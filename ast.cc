@@ -5,117 +5,38 @@ using namespace ast;
 
 //CLASS LIST
 
-int ast_node::ast_count =  0;
-
-void ast_node::add_child(ast_node *child){
-	if(child != NULL){
-		this -> ast_children.push_back(child);
-	}
-	else{
-		std::cout << "attempted to push null child" << std::endl << std::endl;
-	}
+void outer_scope::accept(visitor *v){
+	v -> visit_outer_scope(this);
 }
 
-void ast_node::visit_children(::visitor *v){
-	std::vector<ast_node*>::iterator iter; 
-	for(iter = this -> ast_children.begin(); iter != this -> ast_children.end(); iter++){
-		(*iter) -> accept(v);
-	}
-}
-
-void ast_node::accept(::visitor *v){
-	std::cout << "this instance shouldnt exist" << std::endl; 
-}
-
-ast_node::ast_node() : ast_children(vector<ast_node*>()){
-	this -> ast_id = ast_node::ast_count++;
-}
-ast_node::ast_node(ast_node *a) : ast_children(vector<ast_node*>()){
-	this -> ast_id = ast_node::ast_count++;
-	if(a != NULL){
-		this -> add_child(a);
-	}
-}
-ast_node::ast_node(ast_node *a, ast_node *b) : ast_children(vector<ast_node*>()){
-	this -> ast_id = ast_node::ast_count++;
-	if(a != NULL){
-		this -> add_child(a);
-	}
-	if(b != NULL){
-		this -> add_child(b);
-	}
-}
-ast_node::ast_node(ast_node *a, ast_node *b, ast_node *c) : ast_children(vector<ast_node*>()){
-	this -> ast_id = ast_node::ast_count++;
-	if(a != NULL){
-		this -> add_child(a);
-	}
-	if(b != NULL){
-		this -> add_child(b);
-	}
-	if(c != NULL){
-		this -> add_child(c);
-	}
-}
-ast_node::ast_node(ast_node *a, ast_node *b, ast_node *c, ast_node *d): ast_children(vector<ast_node*>()){
-	this -> ast_id = ast_node::ast_count++;
-	if(a != NULL){
-		this -> add_child(a);
-	}
-	if(b != NULL){
-		this -> add_child(b);
-	}
-	if(c != NULL){
-		this -> add_child(c);
-	}
-	if(d != NULL){
-		this -> add_child(d);
-	}
-}
-
-
-void ast_node::insert_child(ast_node *child){
-	this -> ast_children.insert(this -> ast_children.begin(), child);
-}
-
-int ast_node::num_children(){
-	return this -> ast_children.size();
-}
-
-ast_node* ast_node::get_child(int index){
-	if(index < 0 && index >= this -> num_children()){
-		return this -> ast_children[index];
-	}
-	else{
-		return NULL;
-	}
-}
-
-class_list::class_list(class_node *a_class) : ast_node(a_class) {}
-
-void class_list::accept(::visitor *v) {
-	v -> visit_class_list(this);
-}
+//CLASS LIST
 
 class_node* class_list::get_class(int index) {
 	return (class_node*) this -> get_class(index);	
 }
 
+class_list::class_list(class_node *c): ast_node(c) {}
+
+void class_list::accept(visitor *v) {
+	v -> visit_class_list(this);
+}
+
+
 //TYPE 
 
-string type_node::get_name(){
+std::string type_node::get_name(){
 	return this -> type_id;
 }
 
-type_node::type_node(string type_id): type_id(type_id){}
+type_node::type_node(std::string id): type_id(id), ast_node(){}
 
-void type_node::accept(::visitor *v){
-	std::cout << "this shouldn't be an instance" << std::endl;
+void type_node::accept(visitor *v){
+	std::cout << "visiting type: " << this -> get_name() << std::endl;
 }
 
 //CLASS 
 
-class_node::class_node(std::string id, super_node *super, member_list *mlist): id(id), ast_node(super, mlist) {}
+class_node::class_node(std::string id, super_node *super, member_list *mlist): symbol(MOD_PUBLIC, id, super, mlist) {}
 
 void class_node::accept(::visitor *n) {
 	n -> visit_class_node(this);
@@ -125,35 +46,20 @@ type_node* class_node::get_type(){
 	return (type_node*) this -> get_child(0);
 }
 
-member_list* class_node::get_member_list(){
-	return (member_list*) this -> get_child(2); 
-}
-
 super_node* class_node::get_super(){
 	return (super_node*) this -> get_child(1);
 }
 
 //MEMBER LIST 
-member_list::member_list(): ast_node(){}
 
 void member_list::accept(::visitor *n){
 	n -> visit_member_list(this);
 }
 
-//ABSTRACT MEMBER CLASS
-member::member() : ast_node(){}
-member::member(ast_node *a, ast_node *b) : ast_node(a,b){}
-void member::set_modifiers(int modifiers){
-	this -> modifiers = modifiers;
-}
-
-
 //VIRTUAL DESTRUCTORS
 expression::~expression(){}
-member::~member(){}
 literal::~literal(){}
 statement::~statement(){}
-type_node::~type_node(){}
 ast_node::~ast_node(){}
 
 //SUPER
@@ -163,13 +69,11 @@ void super_node::accept(::visitor *n) {
 }
 
 //FIELD DECLARATION 
-field_decl::field_decl(): member(){} 
 void field_decl::accept(::visitor *n) {
 	n -> visit_field_decl(this);
 }
 
 //FIELD 
-field_node::field_node(std::string id, int count): id(id), count(count), symbol() {} 
 
 expression* field_node::get_init(){
 	if(this -> num_children() < 1){
@@ -187,13 +91,13 @@ void field_node::accept(visitor *n){
 
 
 //METHOD
-method_node::method_node(int modifiers, type_node *type, method_body *body): id(0), modifiers(modifiers), member(type, body){}
+method_node::method_node(int mod, std::string id, type_node *type, method_body *body): symbol(mod, id, type, body){}
 void method_node::accept(visitor *n){
 	n -> visit_method_node(this);
 }
 
 //METHOD BODY
-method_body::method_body(formal_list *flist, statement_list *slist): ast_node(flist, slist) {}; 
+method_body::method_body(formal_list *flist, statement_list *slist): scope(flist, slist) {}; 
 
 void method_body::accept(visitor *n){
 	n -> visit_method_body(this);
@@ -201,7 +105,7 @@ void method_body::accept(visitor *n){
 
 //CONSTRUCTOR
 
-constructor_node::constructor_node(int modifiers, type_node *type, method_body *body): id(0), modifiers(modifiers), member(type, body){}
+constructor_node::constructor_node(int modifiers, std::string id, method_body *body): method_node(modifiers, id, new class_type(id), body){}
 
 void constructor_node::accept(visitor *n){
 	n -> visit_constructor_node(this);
@@ -215,12 +119,12 @@ void formal_list::accept(visitor *n){
 }
 
 //FORMAL ARGUMENT
-formal_node::formal_node(type_node* type): id(0), symbol(type){}
+formal_node::formal_node(type_node* type, std::string id): variable(MOD_PUBLIC, id, type){}
 void formal_node::accept(visitor *n){
 	n -> visit_formal_node(this);
 }
 
-class_type::class_type(string id): type_node(id) {}
+class_type::class_type(std::string id): type_node(id) {}
 void class_type::accept(visitor *n){
 	n -> visit_class_type(this);
 }
@@ -293,7 +197,7 @@ void statement_list::accept(visitor *n){
 	 this -> insert_child(type);
  }
 
-local_node::local_node(string id, int count): id(id), count(count), symbol() {}
+local_node::local_node(std::string id, int count): id(id), count(count), variable(MOD_PUBLIC, id) {}
 void local_node::accept(visitor *n){
 	n -> visit_local_node(this);
 }
@@ -334,8 +238,12 @@ void break_stat::accept(visitor *n){
 }
 
 block_stat::block_stat(statement_list *stats): statement(stats){}
-void block_stat::accept(visitor *n){
-	n -> visit_block_stat(this);
+void block_stat::accept(visitor *v){
+	v -> visit_block_stat(this);
+}
+
+void block_node::accept(visitor *v){
+	v -> visit_block_node(this);
 }
 
 super_stat::super_stat(call_exp *c): statement(c){}
@@ -350,7 +258,7 @@ void op_exp::accept(visitor *n){
 }
 
 
-name_exp::name_exp(string id): id(id), expression(){}
+name_exp::name_exp(std::string id): id(id), expression(){}
 void name_exp::accept(visitor *n){
 	n -> visit_name_exp(this);
 }
@@ -397,7 +305,7 @@ void char_literal::accept(visitor *n){
 	n -> visit_char_literal(this);
 }
 
-string_literal::string_literal(string val): val(val), literal(){}
+string_literal::string_literal(std::string val): val(val), literal(){}
 void string_literal::accept(visitor *n){
 	n -> visit_string_literal(this);
 }
@@ -411,5 +319,10 @@ expression* expression_list::get_expression(int index){
 	return (expression *) get_child(index);
 }
 
-// SYMBOL
+// VARIABLE 
 
+variable::variable(int mod, std::string id, type_node *t): symbol(mod, id, t){}
+variable::variable(int mod, std::string id): symbol(mod, id){}
+void variable::set_type(type_node *type){
+	this -> replace_child(0, type);
+}

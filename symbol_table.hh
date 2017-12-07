@@ -7,54 +7,33 @@
 
 using namespace std;
 
-class class_table;
-class class_symbol;
-class field_table;
-class method_table; 
-class method_symbol;
-class field_symbol;
-
-class symbol {
-};
-
-class variable_symbol : public symbol {
-private: 
-    int count; 
-    expression *exp; 
-public: 
-    variable_symbol(); 
-}
-
-class field_symbol : public symbol {
-private:
-    int count; 
-    ast::field_node *field; 
-public:
-    field_symbol();
-};
-
-class method_symbol : public symbol{
+//stores methods, and variables in their scope
+class method_table {
 public:
     ast::method_node* method;
-    unordered_map<string, ast::variable_symbol> variable_map;
-    method_symbol(ast::method_node* method);
-};
-
-class class_symbol {
-public:
-    ast::unordered_map<string, ast::field_symbol> fields;
-    ast::unordered_map<string, ast::method_symbol> methods; 
-    ast::class_node *this_class; 
-    ast::class_node *parent_class; 
-    class_symbol(ast::class_node *this_class);
+    unordered_map<string, ast::variable*> variable_map;
+    method_table(ast::method_node* method);
+    
 };
 
 class class_table {
-public: 
-    void add_class(string id, ast::class_node *a_class);
-    ast::class_node* get_class(string id);
-    unordered_map<string, class_symbol> class_map;
-    class_table();
+public:
+    ast::unordered_map<string, ast::field_node*> fields;
+    ast::unordered_map<string, ast::method_table*> methods; 
+    ast::class_node *this_class; 
+    ast::class_node *parent_class; 
+    class_table(ast::class_node *this_class);
 };
 
+class symbol_table {
+private:
+    symbol_table *parent;
+    symbol_table *super; 
+    class_table *class_map; 
+public:
+    symbol *find(string name);
+    symbol *find_method(string name);
+    symbol *find_scope(string name);
+    symbol *add_symbol(symbol *sym);
+}
 #endif // ! TABLE_HH

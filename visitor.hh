@@ -1,6 +1,8 @@
 #ifndef VISITOR_HH
 # define VISITOR_HH
 
+#include "ast_node.hh"
+#include "scope.hh"
 # include "ast.hh"
 
 using namespace ast;
@@ -10,14 +12,15 @@ public:
     // visitor();
     virtual ~visitor();
 
-    virtual void visit_ast(ast::ast_node* n)   = 0;
+    virtual void visit_ast(ast_node* n)   = 0;
     virtual void visit_children(ast_node* n)  = 0;
+
+    virtual void visit_outer_scope(outer_scope *n) = 0; 
 
     virtual void visit_class_list(class_list* n)  = 0;
     virtual void visit_class_node(class_node *n)  = 0;
     virtual void visit_member_list(member_list *n)  = 0;
     virtual void visit_super_node(super_node *n)  = 0;
-    virtual void visit_member(member *n)  = 0;
     virtual void visit_field_decl(field_decl *n)  = 0;
     virtual void visit_field_node(field_node *n)  = 0;
     virtual void visit_method_node(method_node *n)  = 0;
@@ -47,7 +50,10 @@ public:
     virtual void visit_return_stat(return_stat*n)  = 0;
     virtual void visit_continue_stat(continue_stat *n)  = 0;
     virtual void visit_break_stat(break_stat *n)  = 0;
+
     virtual void visit_block_stat(block_stat *n)  = 0;
+    virtual void visit_block_node(block_node  *n)  = 0;
+
     virtual void visit_super_stat(super_stat *n)  = 0;
     virtual void visit_expression(expression *n)  = 0;
     virtual void visit_op_exp(op_exp *n)  = 0;

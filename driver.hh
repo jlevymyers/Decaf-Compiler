@@ -3,7 +3,9 @@
 # include <string>
 # include <stack>
 # include "ast.hh" 
+#include "parser.hh"
 # include "print_visitor.hh"
+# include "resolve_scope.hh"
 
 // # include "symbol_table.hh"
 # include "parser.hh"

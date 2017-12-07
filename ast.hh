@@ -4,27 +4,21 @@
 # include <iostream>
 # include <stdlib.h>
 # include <string>
-# include <map>
 # include <vector>
+# include <utility>
 
-class visitor;
+#include "ast_node.hh"
+#include "scope.hh"
+#include "symbol.hh"
+
+
 
 namespace ast
 {
 
-/* method modifiers */  
 
-enum mods {
-	MOD_NONE = 0,
-	MOD_STATIC,
-	MOD_PUBLIC,
-	MOD_PRIVATE,
-	MOD_PROTECTED
-};
-
-//forward declare AST
-class symbol;
-class ast_node;
+//forward dec  lare AST
+class variable;
 class class_list;
 class class_node;
 class member_list; 
@@ -75,60 +69,85 @@ class char_literal;
 class string_literal;
 class expression_list;
 
-using namespace std;
+/* method modifiers */  
 
-class ast_node {
+enum mods {
+	MOD_NONE = 0,
+	MOD_STATIC,
+	MOD_PUBLIC,
+	MOD_PRIVATE,
+	MOD_PROTECTED
+};
+
+enum symbol_type {
+	SYM_NONE = 0, 
+	SYM_FORMAL_ARG, 
+	SYM_FIELD,
+	SYM_LOCAL_VAR,
+	SYM_CLASS,
+	SYM_CTOR,
+	SYM_METHOD
+};
+
+enum type_kind {
+	TYPE_NONE = 0, 
+	TYPE_BOOL,
+	TYPE_CHAR, 
+	TYPE_INT, 
+	TYPE_VOID,
+	TYPE_CLASS,
+	TYPE_NULL,
+	TYPE_INIT,
+	TYPE_ARRAY,
+	TYPE_METHOD,
+	TYPE_META
+};
+
+class outer_scope : public scope {
+public:
+	outer_scope(): scope(){}
+	void accept(visitor *v);
+};
+
+class variable : public symbol {
 private: 
-	vector<ast_node*> ast_children;
-	int ast_id; 
-	static int ast_count; 
+	int offset; 
 public:
-	void visit_children(visitor* v); 
-	ast_node* get_child(int index);
-	void add_child(ast_node* a);
-	void insert_child(ast_node* a);
-	int num_children(); 
-	virtual void accept(visitor* v);
-	virtual ~ast_node();
-	ast_node();
-	ast_node(ast_node *a);
-	ast_node(ast_node *a, ast_node *b);
-	ast_node(ast_node *a, ast_node *b, ast_node *c); 
-	ast_node(ast_node *a, ast_node *b, ast_node *c, ast_node *d);
+	virtual ~variable(){}
+	variable(int mod, std::string id, type_node *t);
+    variable(int mod, std::string id);
+	int get_offset(); 
+	int set_offset(int off);
+	type_node* getType(){
+		return (type_node*) get_child(1); 
+	}
+	void set_type(type_node *type);
 };
 
-
-class symbol : public ast_node {
-public:
-	symbol(): ast_node(){}
-	symbol(ast_node* a): ast_node(a){}
-	virtual ~symbol(){}
-	virtual void accept(visitor *v) = 0;
-};
 
 class class_list: public ast_node {
 public:
+	class_list(class_node *c);
 	void visit_children(visitor *v);
 	class_node* get_class(int index);
 	void accept(visitor *v);
-	class_list(class_node *a_class); 
 };
 
-class class_node : public ast_node {
-private:
-	std::string id; 
+class class_node : public symbol {
 public:
 	void accept(visitor *v);
 	type_node* get_type();
-	member_list* get_member_list();
+	scope* get_scope(){
+		return (scope*)this -> get_child(1);
+	}
 	super_node* get_super();
-	class_node(std::string, super_node *super, member_list *mlist);
+	class_node(std::string id, super_node *super, member_list *mlist);
 };
 
-class member_list : public ast_node {
+class member_list : public scope {
 public:
 	void accept(visitor *v);
-	member_list();
+	member_list(): scope(){}; 
 };
 
 //NOTE: use Object
@@ -138,62 +157,53 @@ public:
 	super_node(type_node *type);
 };
 
-class member : public ast_node {
-private: 
-	int modifiers; 
-public:
-	virtual ~member();
-	virtual void accept(visitor *v) = 0;
-	member();
-	member(ast_node *a, ast_node *b);
-	member(ast_node *a, ast_node *b, ast_node *c, ast_node *d);
-	void set_modifiers(int modifiers);
-};
-
-class field_decl : public member {
+class field_decl : public ast_node {
 private:
-	int id; 
 	int modifiers;
 public:
 	void accept(visitor *v); 
-	field_decl();
+	field_decl(){}
+	void set_modifiers(int mod){
+		this -> modifiers = mod;
+	}
+	void set_type(type_node *type){
+		//this -> add_child(type);
+	}
 };
 
 //initializer???
-class field_node : public symbol {
+class field_node : public variable {
 private:
 	std::string id; 
 	int count;
 public:
 	void accept(visitor *v);
 	expression *get_init();
-	field_node(string id, int count); 
-	
+
+	//MODIFIERS SHOULD BE SET BE PARSER -- easier parsing
+	field_node(std::string id, int count): count(count), variable(MOD_NONE, id){}
 };
 
-class method_node : public member {
+class method_node : public symbol {
 private:
 	int id;
 	int modifiers;
 public:
 	void accept(visitor *v);
-	method_node(int modifiers, type_node *type, method_body *body); 
+	method_node(int modifiers, std::string id, type_node *type, method_body *body); 
 };
 
-class method_body : public ast_node {
+class method_body : public scope {
 public: 
 	void accept(visitor *v);
 	method_body(formal_list *flist, statement_list *slist); 
 };
 
 //constructor node
-class constructor_node : public member {
-private:
-	int id;
-	int modifiers;
+class constructor_node : public method_node {
 public:
     void accept(visitor *v);	
-	constructor_node(int modifiers, type_node *type, method_body *body); 
+	constructor_node(int modifiers, std::string id, method_body *body); 
 };
 
 class formal_list : public ast_node {
@@ -202,29 +212,28 @@ public:
 	formal_list(); 
 };
 
-class formal_node : public symbol {
+class formal_node : public variable {
 private:
 	int id; 
 public:
 	void accept(visitor *v);
-	formal_node(type_node *type);
+	formal_node(type_node *type, std::string id);
 };
 
 class type_node : public ast_node {
-	string type_id; 
+	std::string type_id; 
 public:
-	virtual void accept(visitor *v);
-	virtual ~type_node();
-	string get_name();
-	type_node(string id);
+ 	void accept(visitor *v);
+	std::string get_name();
+	type_node(std::string id);
 };
 
 class class_type : public type_node {
 private: 
-	string id;	
+	std::string id;	
 public:
-	class_type(string id);
-	string get_name();
+	class_type(std::string id);
+	std::string get_name();
 	void accept(visitor *v);
 };
 
@@ -308,12 +317,12 @@ public:
 	void accept(visitor *v);
 };
 
-class local_node : public symbol {
+class local_node : public variable {
 private:
-	string id;
+	std::string id;
 	int count;
 public:
-	local_node(string id, int count);
+	local_node(std::string id, int count);
 	void accept(visitor *v);
 };
 
@@ -361,6 +370,12 @@ public:
 	void accept(visitor *v);
 };
 
+class block_node : public scope {
+	public: 
+	block_node(): scope(){}
+	void accept(visitor *v);  
+};
+
 class super_stat : public statement {
 public:
 	super_stat(call_exp *c); 
@@ -390,10 +405,10 @@ public:
 
 class name_exp : public expression {
 private:
-	string id;
+	std::string id;
 public: 
-	string get_name();
-	name_exp(string id);
+	std::string get_name();
+	name_exp(std::string id);
 	void accept(visitor *v);
 };
 
@@ -456,9 +471,9 @@ public:
 
 class string_literal : public literal {
 private:
-	string val; 
+	std::string val; 
 public:
-	string_literal(string val);
+	string_literal(std::string val);
 	void accept(visitor *v);
 };
 

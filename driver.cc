@@ -1,5 +1,4 @@
 #include "driver.hh"
-#include "parser.hh"
 
 calcxx_driver::calcxx_driver ()
   : trace_scanning (false), trace_parsing (false){}
@@ -13,13 +12,19 @@ calcxx_driver::parse (const std::string &f)
 {
   file = f;
   scan_begin ();
+
   yy::calcxx_parser parser (*this);
   parser.set_debug_level (trace_parsing);
-  scope = stack<symbol*>(); 
   int res = parser.parse ();
   scan_end ();
+
+
   print_visitor p = print_visitor();
   p.visit_ast(this -> result);
+
+  resolve_scope s = resolve_scope();
+  s.visit_ast(this -> result);
+
   return res;
 }
 

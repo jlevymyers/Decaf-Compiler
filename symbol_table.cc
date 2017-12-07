@@ -1,31 +1,40 @@
 # include "symbol_table.hh"
 
-field_table::field_table(): 
-    field_map(unordered_map<string, ast::field_node*>()){}
+#ifndef TABLE_HH
+# define TABLE_HH
 
-method_table::method_table(): 
-    method_map(unordered_map<string, method_symbol>()){}
+# include <unordered_map>
+# include <utility>
+# include "ast.hh"
 
-method_symbol::method_symbol(ast::method_node *method): 
-    method(method), 
-    variable_map(unordered_map<string, ast::symbol*>()){}
+using namespace std;
 
-class_symbol::class_symbol(ast::class_node *this_class): 
-    fields(field_table()), 
-    methods(method_table()),
-    this_class(this_class){}
+class method_table {
+public:
+    ast::method_node* method;
+    unordered_map<string, ast::variable_symbol> variable_map;
+    method_table();
+    A
+};
 
-class_table::class_table(): 
-    class_map(unordered_map<string, class_symbol>()){
-        //MORE work needs to be done
-        this -> add_class("Object", NULL);
-    }
+class class_table {
+public:
+    ast::unordered_map<string, ast::field_node> fields;
+    ast::unordered_map<string, ast::method_table> methods; 
+    ast::class_node *this_class; 
+    ast::class_node *parent_class; 
+    class_table(ast::class_node *this_class);
+};
 
-void class_table::add_class(string id, ast::class_node *a_class){
-    pair<string, class_symbol> ins (id, a_class);
-    this -> class_map.insert(ins);
+class symbol_table{
+private:
+    symbol_table *parent;
+    symbol_table *super; 
+    class_table *class_map; 
+public:
+    symbol *find(string name);
+    symbol *find_method(string name);
+    symbol *find_scope(string name);
+    symbol *add_symbol(symbol *sym);
 }
-
-ast::class_node* class_table::get_class(string id){
-    return this -> class_map.at(id).this_class;
-}
+#endif // ! TABLE_HH

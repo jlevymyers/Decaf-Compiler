@@ -1,20 +1,30 @@
-#ifndef PRINTER_HH
-# define PRINTER_HH
+#ifndef RESOLVE_SCOPE_HH
+# define RESOLVE_SCOPE_HH
 
 # include "visitor.hh"
 # include <iostream>
+# include <stack>
 
 using namespace ast;
 
-class print_visitor : public visitor {
+class resolve_scope : public visitor {
+private:
+    std::stack<scope*> scope_stack; 
+    scope* resolve_outer_scope;
 public:
-    print_visitor();
-    ~print_visitor();
 
-    void visit_outer_scope(outer_scope *n);
+    resolve_scope();
+    ~resolve_scope();
+
+
+    void push_scope(scope* s);
+    void pop_scope(scope *s);
+    scope* current_scope();
 
     void visit_ast(ast_node* n) ;
     void visit_children(ast_node* n) ; 
+
+    void visit_outer_scope(outer_scope* s);
 
     void visit_class_list(class_list* n) ; 
     void visit_class_node(class_node *n) ; 
@@ -49,8 +59,10 @@ public:
     void visit_return_stat(return_stat*n); 
     void visit_continue_stat(continue_stat *n); 
     void visit_break_stat(break_stat *n); 
+    
     void visit_block_stat(block_stat *n); 
-    void visit_block_node(block_node *n);
+    void visit_block_node(block_node *n); 
+
     void visit_super_stat(super_stat *n); 
     void visit_expression(expression *n); 
     void visit_op_exp(op_exp *n); 
@@ -67,4 +79,4 @@ public:
     void visit_expression_list(expression_list *n); 
 };
 
-#endif // ! PRINT_HH
+#endif // ! RESOLVE_SCOPE_HH

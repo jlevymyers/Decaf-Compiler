@@ -11,6 +11,7 @@
 # include <utility>
 # include <list>
 # include "ast.hh"
+# include "ast_node.hh"
 # include "visitor.hh"
 # include "print_visitor.hh"
 class calcxx_driver;
@@ -28,9 +29,6 @@ class calcxx_driver;
 %code
 {
 # include "driver.hh"
-# include <unordered_map>
-
-std::unordered_map<std::string, ast::ast_node*> symbol_map; 
 
 }
 %define api.token.prefix {TOK_}
@@ -100,7 +98,7 @@ std::unordered_map<std::string, ast::ast_node*> symbol_map;
 %type <ast::class_node*> class 
 %type <ast::super_node*> super
 %type <ast::member_list*> memberList
-%type <ast::member*> member
+%type <ast::ast_node*> member
 %type <int> modifierList
 %type <int> modifier
 %type <ast::formal_list*> formalArgs
@@ -160,7 +158,9 @@ super:	%empty {$$ = new ast::super_node(new class_type("Object"));} //should be 
 		;
 
 memberList:	
-		%empty {$$ = new ast::member_list();}
+		%empty {
+			$$ = new ast::member_list();
+			}
 		| memberList member {
 			$$ = $1;
 			$1 -> add_child($2);
@@ -168,14 +168,14 @@ memberList:
 		;
 
 member: 	
-		modifierList type fieldDeclList ";" {
+		modifierList type fieldDeclList {
 			$$ = $3;
-			$$ -> insert_child($2);
-			$$ -> set_modifiers($1);
+			((field_decl*) $$) -> set_type($2);
+			((field_decl* )$$) -> set_modifiers($1);
 		}
-      	|modifierList type IDENTIFIER formalArgs block {$$ = new ast::method_node($1, $2, new ast::method_body($4, $5));}
+      	|modifierList type IDENTIFIER formalArgs block {$$ = new ast::method_node($1, $3, $2,  new ast::method_body($4, $5));}
 		|modifierList IDENTIFIER formalArgs block /* CONSTRUCTOR */
-			{$$ = new ast::constructor_node($1, new ast::type_node($2), new ast::method_body($3, $4));}
+			{$$ = new ast::constructor_node($1, $2, new ast::method_body($3, $4));}
 		;
 
 modifierList:	
@@ -204,11 +204,10 @@ formalArgsList:
 		;
 
 formalArg: 	
-		type fieldDeclId {
-			$$ = new ast::formal_node($1);
-			
-			}
-	 	;
+		/* NOTE: Not pdf syntax */
+		type IDENTIFIER {
+			$$ = new ast::formal_node($1, $2);
+		};
 
 type:	
 		primativeType {$$ = $1;}
@@ -249,7 +248,7 @@ fieldDecl:
 
 fieldDeclId: 	
 		IDENTIFIER brackets {
-			$$ = new ast::field_node($1, (int) $2);}
+			$$ = new ast::field_node($1, $2);}
 		| IDENTIFIER {
 			$$ = new ast::field_node($1, 0);}
 
