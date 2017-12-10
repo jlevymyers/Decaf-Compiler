@@ -82,16 +82,13 @@ void symbol_table::set_outer_scope(ast::scope *s){
 }
 
 ast::symbol* symbol_table::find_scope(string name){
-    std::cout << "finding field/variable in local scope: " << name << std::endl;
     std::unordered_map<std::string, ast::symbol*>::iterator field_iter = this -> fields.find(name);
     std::unordered_map<std::string, ast::symbol*>::iterator var_iter = this -> variables.find(name);
 
     if(var_iter != variables.end()){
-        cout << "found variable: " << name << endl; 
         return variables[name];   
     }
     else if(field_iter != fields.end()){
-        cout << "found field: " << name << endl; 
         return fields[name];   
     }
     else if(this -> parent_table != NULL){
@@ -101,7 +98,6 @@ ast::symbol* symbol_table::find_scope(string name){
         return this -> super_table -> find_scope(name);
     }
     else{
-        cout << "could not find field/var in object scope" << endl; 
         return NULL;
     }
 }
@@ -112,34 +108,27 @@ ast::symbol* symbol_table::find_method(string name){
         //CHECK IF WE ARE A CLASS 
         if(parent_table == NULL){
             if(super_table == NULL){
-                cout << "ERROR: object table could not resolve method" << endl;
                 return NULL;
             }
             else{
-                cout << "resolving method in super table" << endl;
                 return this -> super_table -> find_method(name);
             }
         }
         else{
-            cout << "resolving method in parent table" << endl;
             return this -> parent_table -> find_method(name);
         }
     }
     else{
-        cout << "SUCCESS: found method symbol: " << name << endl;
         return methods[name];
     }
 }
 
 ast::symbol* symbol_table::find(string name){
-    std::cout << "finding global symbol" << std::endl;
     if(this -> outer_table == NULL){
         if(this -> classes.find(name) == classes.end()){
-            cout << "ERROR: couldn't find class in global scope: " << name << endl; 
             return NULL;
         }
         else{
-            cout << "SUCCESS: found symbol: " << name << endl; 
             return classes[name];
         }
     }

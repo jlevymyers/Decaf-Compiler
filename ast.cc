@@ -320,10 +320,10 @@ void super_stat::accept(visitor *n){
 }
 
 op_exp::op_exp(expression *exp): expression(exp){
-	this -> exp_type = exp -> get_type(); 
+	//this -> exp_type = exp -> get_type(); 
 }
 op_exp::op_exp(expression *left, expression *right): expression(left, right) {
-	this -> exp_type = left -> get_type();
+	//this -> exp_type = left -> get_type();
 }     
 void op_exp::accept(visitor *n){
 	n -> visit_op_exp(this);
