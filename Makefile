@@ -2,7 +2,7 @@ all: decaf
 
 CC = g++
 CXX = g++
-CXXFLAGS = -I../flex/include -std=c++14
+CXXFLAGS = -I../flex/include -std=c++98
 
 decaf: driver.o parser.o scanner.o decaf.o ast.o visitor.o print_visitor.o resolve_scope.o build_symbols.o symbol_table.o
 	$(CXX) $(CXXFLAGS)  -o decaf *.o 

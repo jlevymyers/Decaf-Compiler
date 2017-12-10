@@ -49,12 +49,13 @@ private:
     std::vector<ast_node*> ast_children;
 	int ast_id; 
 	static int ast_count; 
-public:
-	void visit_children(visitor* v); 
-	ast_node* get_child(int index);
+protected: 
 	void add_child(ast_node* a);
 	void insert_child(ast_node* a);
 	void replace_child(int index, ast_node* a);
+public:
+	void visit_children(visitor* v); 
+	ast_node* get_child(int index);
 	int num_children(); 
 	virtual void accept(visitor* v) = 0;
 	virtual ~ast_node();

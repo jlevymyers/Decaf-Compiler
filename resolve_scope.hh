@@ -11,6 +11,9 @@ class resolve_scope : public visitor {
 private:
     std::stack<scope*> scope_stack; 
     scope* resolve_outer_scope;
+    class_node *current_class; 
+    void build_runtime();
+    method_node *build_method(std::string name, type_node* ret_type, type_node* arg_type, std::string arg_name);
 public:
 
     resolve_scope();
@@ -18,8 +21,20 @@ public:
 
     void push_scope(scope* s);
     void pop_scope(scope *s);
+
     scope* get_current_scope();
     scope* get_outer_scope();
+
+    void set_current_class(class_node *c); 
+
+    void pop_current_class(){
+        this -> current_class = NULL;
+    }
+
+    class_node *get_current_class(){
+        assert(this -> current_class);
+        return this -> current_class; 
+    }
 
     void visit_ast(ast_node* n) ;
     void visit_children(ast_node* n) ; 
@@ -40,7 +55,6 @@ public:
     void visit_type_node(type_node *n); 
     void visit_class_type(class_type *n); 
     void visit_array_type_node(array_type_node *n); 
-    //void visit_primative_type(primative_type *n); 
     void visit_primative_int(primative_int *n); 
     void visit_primative_bool(primative_bool *n); 
     void visit_primative_char(primative_char *n); 
@@ -49,7 +63,6 @@ public:
     void visit_init_node(init_node *n); 
     void visit_meta_node(meta_node *n); 
     void visit_statement_list(statement_list *n); 
-    //void visit_statement;  ABSTRACT 
     void visit_empty_stat(empty_stat *n); 
     void visit_decl_stat(decl_stat *n); 
     void visit_local_node(local_node *n); 
@@ -67,6 +80,7 @@ public:
     void visit_expression(expression *n); 
     void visit_op_exp(op_exp *n); 
     void visit_name_exp(name_exp *n); 
+    void visit_new_exp(new_exp *n);
     void visit_new_array_exp(new_array_exp *n); 
     void visit_call_exp(call_exp *n); 
     void visit_array_ref(array_ref *n); 

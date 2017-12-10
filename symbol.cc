@@ -25,6 +25,10 @@ void symbol::set_modifiers(int mod){
     this -> modifiers = mod; 
 }
 
+void symbol::set_symbol(symbol* s){
+    this -> associated_symbol = s;
+}
+
 scope* symbol::get_define_scope(){
     return this -> define_scope;
 }
@@ -35,10 +39,6 @@ symbol_type symbol::get_symbol_type(){
 
 void symbol::set_define_scope(scope *s){
     this -> define_scope = s; 
-}
-
-type_node* symbol::get_type(){
-    return NULL; 
 }
 
 std::string symbol::get_name(){

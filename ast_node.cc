@@ -78,7 +78,7 @@ int ast_node::num_children(){
 }
 
 ast_node* ast_node::get_child(int index){
-	if(index < 0 && index >= this -> num_children()){
+	if(index >= 0 && index < this -> num_children()){
 		return this -> ast_children[index];
 	}
 	else{

@@ -25,6 +25,10 @@ calcxx_driver::parse (const std::string &f)
   resolve_scope s = resolve_scope();
   s.visit_ast(this -> result);
 
+  build_symbols b = build_symbols(s.get_outer_scope());
+  b.visit_ast(this -> result);
+
+
   //build_symbols b = build_symbols();
   //b.visit_ast(this -> result);
 

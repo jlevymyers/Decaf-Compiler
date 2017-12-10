@@ -1,6 +1,11 @@
 # include "print_visitor.hh"
 
-print_visitor::print_visitor(): visitor(){}
+print_visitor::print_visitor(): visitor(){
+     std::cout << "\n-----------------------------" << std::endl;
+    std::cout << "Printing Abstact Syntax Tree" << std::endl;
+    std::cout << "-----------------------------\n" << std::endl;
+
+}
 print_visitor::~print_visitor(){}
 
 void print_visitor::visit_ast(ast_node *n){
@@ -22,8 +27,7 @@ void print_visitor::visit_class_list(class_list* n){
     }
 
 void print_visitor::visit_class_node(class_node *n){
-    std::cout << "class node";
-    std::cout << std::endl;
+    std::cout << "class node: " << n -> get_name() << std::endl;
     }
 void print_visitor::visit_member_list(member_list *n){
     std::cout << "member list";
@@ -41,7 +45,7 @@ void print_visitor::visit_field_node(field_node *n){
     std::cout << "field " << std::endl;
     }
 void print_visitor::visit_method_node(method_node *n){
-    std::cout << "method" << std::endl;
+    std::cout << "method: " << n -> get_name() << std::endl;
     }
 void print_visitor::visit_method_body(method_body *n){
     std::cout << "method body" << std::endl;
@@ -53,7 +57,7 @@ void print_visitor::visit_formal_list(formal_list *n){
     std::cout << "formal list" << std::endl; 
     }
 void print_visitor::visit_formal_node(formal_node *n){
-    std::cout << "formal" << std::endl; 
+    std::cout << "formal: " << n -> get_name() << std::endl; 
     }
 void print_visitor::visit_type_node(type_node *n){
     std::cout << "type node" << std::endl;
@@ -133,11 +137,16 @@ void print_visitor::visit_op_exp(op_exp *n){
      std::cout << "op" << std::endl;
           }
 void print_visitor::visit_name_exp(name_exp *n) { 
-    std::cout << "name" << std::endl;
+    std::cout << "name: " << n -> get_name() << std::endl;
+    }
+
+void print_visitor::visit_new_exp(new_exp *n){
+    std::cout << "new" << std::endl;
         }
 void print_visitor::visit_new_array_exp(new_array_exp *n){
     std::cout << "new array" << std::endl;
         }
+
 void print_visitor::visit_call_exp(call_exp *n) {
     std::cout << "call" << std::endl;
         }

@@ -11,13 +11,9 @@ scope::scope(): ast_node(){
 }
 scope::scope(ast_node *a): ast_node(a){
     this -> sym_table = new symbol_table();
-        std::cout << "symtable" << this -> sym_table << std::endl;
-
 }
 scope::scope(ast_node *a, ast_node *b): ast_node(a,b){
     this -> sym_table = new symbol_table();
-    std::cout << "symtable" << this -> sym_table << std::endl;
-    
 }
 
 scope* scope::get_super_scope(){
@@ -53,4 +49,33 @@ void scope::add_symbol(symbol *s){
 
 symbol_table* scope::get_table(){
     return this -> sym_table;
+}
+
+
+symbol* scope::find_scope(std::string name){
+    std::cout << "finding field/variable" << std::endl; 
+    if(this -> sym_table != NULL)
+        return this -> sym_table -> find_scope(name);
+    else{
+        return NULL;
+    }
+}
+
+
+symbol* scope::find_method(std::string name){
+    std::cout << "finding method" << std::endl; 
+    if(this -> sym_table != NULL)
+        return this -> sym_table -> find_method(name);
+    else{
+        return NULL;
+    }
+}
+
+symbol* scope::find(std::string name){
+    std::cout << "finding global" << std::endl; 
+    if(this -> sym_table != NULL)
+        return this -> sym_table -> find(name);
+    else{
+        return NULL;
+    }
 }

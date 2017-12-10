@@ -55,10 +55,10 @@ public:
     void visit_expression(expression *n); 
     void visit_op_exp(op_exp *n); 
     void visit_name_exp(name_exp *n); 
+    void visit_new_exp(new_exp *n); 
     void visit_new_array_exp(new_array_exp *n); 
     void visit_call_exp(call_exp *n); 
     void visit_array_ref(array_ref *n); 
-
     void visit_null_literal(null_literal *n); 
     void visit_bool_literal(bool_literal *n); 
     void visit_int_literal(int_literal *n); 

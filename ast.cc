@@ -1,5 +1,6 @@
 #include "ast.hh"
 #include "visitor.hh"
+#include <cassert>
 
 using namespace ast;
 
@@ -11,6 +12,10 @@ void outer_scope::accept(visitor *v){
 	v -> visit_outer_scope(this);
 }
 
+void outer_scope::add(ast_node *n){
+	this -> add_child(n);
+}
+
 //CLASS LIST
 
 class_node* class_list::get_class(int index) {
@@ -19,6 +24,10 @@ class_node* class_list::get_class(int index) {
 
 class_list::class_list(class_node *c): ast_node(c) {}
 
+void class_list::add_class(class_node *c){
+	this -> add_child(c);
+}
+
 void class_list::accept(visitor *v) {
 	v -> visit_class_list(this);
 }
@@ -26,11 +35,14 @@ void class_list::accept(visitor *v) {
 
 //TYPE 
 
-std::string type_node::get_name(){
-	return this -> type_id;
+type_node::type_node(std::string id): type_id(id), ast_node(){
+	assert(this -> type_id != "");
 }
 
-type_node::type_node(std::string id): type_id(id), ast_node(){}
+std::string type_node::get_name(){
+	assert(this -> type_id != "");
+	return this -> type_id; 
+}
 
 void type_node::accept(visitor *v){
 	std::cout << "visiting type: " << this -> get_name() << std::endl;
@@ -38,18 +50,30 @@ void type_node::accept(visitor *v){
 
 //CLASS 
 
-class_node::class_node(std::string id, super_node *super, member_list *mlist): symbol(MOD_PUBLIC, id, SYM_CLASS, super, mlist) {}
+class_node::class_node(std::string id, super_node *super, member_list *mlist): symbol(MOD_PUBLIC, id, SYM_CLASS, super, mlist) {
+	class_type * type = new class_type(id); 
+	this -> add_child(type);
+}
 
-void class_node::accept(::visitor *n) {
+void class_node::accept(visitor *n) {
 	n -> visit_class_node(this);
 }
 
 type_node* class_node::get_type(){
-	return (type_node*) this -> get_child(0);
+	return (type_node*) this -> get_child(2);
 }
 
 super_node* class_node::get_super(){
-	return (super_node*) this -> get_child(1);
+	return (super_node*) this -> get_child(0);
+}
+
+member_list* class_node::get_members(){
+	return (member_list*) this -> get_child(1);
+}
+
+scope* class_node::get_associated_scope(){
+	assert(get_members());
+	return (scope*) this -> get_members();
 }
 
 //MEMBER LIST 
@@ -66,6 +90,12 @@ literal::~literal(){}
 statement::~statement(){}
 ast_node::~ast_node(){}
 
+//STATEMENT
+
+void statement::statement::add_type(type_node *type){
+	this -> insert_child(type);
+}
+
 //SUPER
 super_node::super_node(type_node *type): ast_node(type){}
 void super_node::accept(::visitor *n) {
@@ -77,6 +107,10 @@ void field_decl::accept(::visitor *n) {
 	n -> visit_field_decl(this);
 }
 
+void field_decl::add_field(field_node *f){
+	this -> add_child(f);
+}
+
 //FIELD 
 
 expression* field_node::get_init(){
@@ -86,6 +120,10 @@ expression* field_node::get_init(){
 	else{
 		return (expression*) get_child(0);
 	}
+}
+
+void field_node::add_assignment(expression *exp){
+		this -> add_child(exp);
 }
 
 void field_node::accept(visitor *n){
@@ -125,6 +163,14 @@ void formal_list::accept(visitor *n){
 	n -> visit_formal_list(this);
 }
 
+void formal_list::add_formal(formal_node *formal){
+		this -> add_child(formal);
+}
+
+void formal_list::add_formal_first(formal_node *formal){
+		this -> insert_child(formal);
+}
+
 //FORMAL ARGUMENT
 formal_node::formal_node(type_node* type, std::string id): variable(MOD_PUBLIC, id, SYM_FORMAL_ARG, type){}
 void formal_node::accept(visitor *n){
@@ -132,6 +178,7 @@ void formal_node::accept(visitor *n){
 }
 
 class_type::class_type(std::string id): type_node(id) {}
+
 void class_type::accept(visitor *n){
 	n -> visit_class_type(this);
 }
@@ -191,6 +238,10 @@ void statement_list::accept(visitor *n){
 	n -> visit_statement_list(this);
 }
 
+void statement_list::add_statement(statement *stat){
+	this -> add_child(stat);
+}
+
  empty_stat::empty_stat(): statement(){}
  void empty_stat::accept(visitor *n){
 	 n -> visit_empty_stat(this);
@@ -204,9 +255,17 @@ void statement_list::accept(visitor *n){
 	 this -> insert_child(type);
  }
 
+ void decl_stat::add_local(local_node *l){
+	 this -> add_child(l);
+ }
+
 local_node::local_node(std::string id, int count): id(id), count(count), variable(MOD_PUBLIC, id, SYM_LOCAL_VAR) {}
 void local_node::accept(visitor *n){
 	n -> visit_local_node(this);
+}
+
+void local_node::add_assignment(expression *exp){
+	this -> add_child(exp);
 }
 
 if_stat::if_stat(expression *exp, statement *stat): statement(exp, stat){}
@@ -260,21 +319,51 @@ void super_stat::accept(visitor *n){
 	n -> visit_super_stat(this);
 }
 
-op_exp::op_exp(ast_node *exp): expression(exp){}
-op_exp::op_exp(ast_node *left, ast_node *right): expression(left, right) {}     
+op_exp::op_exp(expression *exp): expression(exp){
+	this -> exp_type = exp -> get_type(); 
+}
+op_exp::op_exp(expression *left, expression *right): expression(left, right) {
+	this -> exp_type = left -> get_type();
+}     
 void op_exp::accept(visitor *n){
 	n -> visit_op_exp(this);
 }
 
+type_node *op_exp::get_type(){
+	return ((expression*) get_child(0)) -> get_type();
+}
 
-name_exp::name_exp(std::string id): id(id), expression(){}
+
+name_exp::name_exp(std::string id): id(id), is_lhs(true), expression(){}
+name_exp::name_exp(expression* exp, std::string id, bool is_call): id(id), is_call(is_call), is_lhs(false), expression(exp){}
+
 void name_exp::accept(visitor *n){
 	n -> visit_name_exp(this);
 }
 
+type_node* name_exp::get_type(){
+		return this -> get_symbol() -> get_type(); 
+}
 
 
-new_array_exp::new_array_exp(type_node *type): expression(type){}
+void name_exp::set_type(type_node *type){
+	this -> exp_type = type;
+}
+
+new_exp::new_exp(type_node *type): expression(type){}
+
+void new_exp::accept(visitor *v){
+	v -> visit_new_exp(this);
+}
+
+type_node *new_exp::get_type(){
+	std::cout << "new type" << std::endl;
+	return (type_node*) this -> get_child(0); 
+}
+
+new_array_exp::new_array_exp(type_node *type): expression(type){
+	this -> exp_type = type;
+}
 
 expression* new_array_exp::get_dimension(int index){
 	return (expression*) this -> get_child(index);
@@ -283,40 +372,87 @@ void new_array_exp::accept(visitor *n){
 	n -> visit_new_array_exp(this);
 }
 
+type_node* new_array_exp::get_type(){
+	return (type_node*) get_child(0);
+}
+
 call_exp::call_exp(name_exp* id, expression_list *actual_args): expression(id, actual_args){}
 void call_exp::accept(visitor *n){
 	n -> visit_call_exp(this);
 }
+
+type_node* call_exp::get_type(){
+	std::cout << "ERROR: call type unimplemented" << std::endl;
+	return NULL;
+}
+//ARRAY REFERENCE
  
-array_ref::array_ref(name_exp *id, expression* dimension): expression(id, dimension){}
+array_ref::array_ref(name_exp *id, expression* dimension): expression(id, dimension){
+	this -> exp_type = new array_type_node(new class_type(id -> get_name()));
+}
 array_ref::array_ref(expression* array_exp, expression* dimension){}
 void array_ref::accept(visitor *n){
 	n -> visit_array_ref(this);
 }
 
-null_literal::null_literal(): literal(){}
+type_node *array_ref::get_type(){
+	return ((expression*) this -> get_child(0)) -> get_type();
+}
+
+//NULL
+
+null_literal::null_literal(): literal(){
+	this -> exp_type = new class_type("Object");
+}
 void null_literal::accept(visitor *n){
 	n -> visit_null_literal(this);
 }
+type_node *null_literal::get_type(){
+	return new null_node();
+}
 
-bool_literal::bool_literal(bool val): val(val), literal(){}
+//BOOLEAN
+
+bool_literal::bool_literal(bool val): val(val), literal(){
+	this -> exp_type = new primative_bool();
+}
 void bool_literal::accept(visitor *n){
 	n -> visit_bool_literal(this);
 }
+type_node * bool_literal::get_type(){
+	return new primative_bool();
+}
 
-int_literal:: int_literal(int val): val(val), literal(){}
+//INTEGER
+
+int_literal:: int_literal(int val): val(val), literal(){
+	this -> exp_type = new primative_int();
+}
 void int_literal::accept(visitor *n){
 	n -> visit_int_literal(this);
 }
+type_node * int_literal::get_type(){
+	return new primative_int();
+}
 
-char_literal::char_literal(char val): val(val), literal(){}
+char_literal::char_literal(char val): val(val), literal(){
+	this -> exp_type = new primative_char();
+}
 void char_literal::accept(visitor *n){
 	n -> visit_char_literal(this);
 }
+type_node * char_literal::get_type(){
+	return new primative_char();
+}
 
-string_literal::string_literal(std::string val): val(val), literal(){}
+string_literal::string_literal(std::string val): val(val), literal(){
+	this -> exp_type = new class_type("String");
+}
 void string_literal::accept(visitor *n){
 	n -> visit_string_literal(this);
+}
+type_node * string_literal::get_type(){
+	return new class_type("String");
 }
 
 expression_list::expression_list(): ast_node(){}
@@ -328,10 +464,18 @@ expression* expression_list::get_expression(int index){
 	return (expression *) get_child(index);
 }
 
+void expression_list::add_expression(expression *exp){
+	this -> add_child(exp);
+}
+
 // VARIABLE 
 
 variable::variable(int mod, std::string id, symbol_type sym_type, type_node *t): symbol(mod, id, sym_type, t){}
 variable::variable(int mod, std::string id, symbol_type sym_type): symbol(mod, id, sym_type){}
 void variable::set_type(type_node *type){
-	this -> replace_child(0, type);
+	this -> insert_child(type);
+}
+
+type_node *variable::get_type(){
+	return (type_node*) this -> get_child(0);
 }

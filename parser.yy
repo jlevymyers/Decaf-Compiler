@@ -144,7 +144,7 @@ start:	class {
 			$$ = new ast::class_list($1);}
 		|start class {
 			$$ = $1;
-			$1 -> add_child($2);
+			$1 -> add_class($2);
 		}
 		;
 
@@ -163,7 +163,7 @@ memberList:
 			}
 		| memberList member {
 			$$ = $1;
-			$1 -> add_child($2);
+			$1 -> add_member($2);
 		}
 		;
 
@@ -193,14 +193,20 @@ modifier:
 
 formalArgs:	
 		"(" formalArgsList ")" {$$ = $2;}
-	  	|"(" ")" {$$ = new ast::formal_list();}
+	  	|"(" ")" {
+			  $$ = new ast::formal_list();
+		}
 	  	;
 
 formalArgsList:	
-		formalArg {$$ = new ast::formal_list();}
+		formalArg {
+			$$ = new ast::formal_list();
+			$$ -> add_formal($1);
+		}
 	    |formalArg "," formalArgsList {
 			$$ = $3; 
-			$$ -> add_child($1);}
+			$$ -> add_formal($1);
+		}
 		;
 
 formalArg: 	
@@ -230,11 +236,11 @@ primativeType:
 fieldDeclList:	
 		fieldDecl "," fieldDeclList {
 			$$ = $3; 
-			$$ -> add_child($1);
+			$$ -> add_field($1);
 			}
 	   	|fieldDecl {
 			$$ = new field_decl();
-			$$ -> add_child($1);
+			$$ -> add_field($1);
 			}
 		;
 
@@ -242,7 +248,7 @@ fieldDecl:
 		fieldDeclId {$$ = $1;} 
        	|fieldDeclId ASGN expression {
 			$$ = $1;
-			$$ -> add_child($3);	
+			$$ -> add_assignment($3);	
 			}
 		;
 
@@ -255,10 +261,10 @@ fieldDeclId:
 localDeclList:
 		localDecl "," localDeclList {
 			$$ = $3;
-			$$ -> add_child($1);}
+			$$ -> add_local($1);}
 	   	|localDecl {
 			$$ = new ast::decl_stat();
-			$$ -> add_child($1);
+			$$ -> add_local($1);
 			}
 		;
 
@@ -266,7 +272,7 @@ localDecl:
 		localDeclId {$$ = $1;} 
        	|localDeclId ASGN expression {
 			$$ = $1;
-			$$ -> add_child($3);
+			$$ -> add_assignment($3);
 			}
 		;
 
@@ -288,7 +294,7 @@ statementList:
 		}
 	    |statementList statement {
 			$$ = $1; 
-			$$ -> add_child($2);}
+			$$ -> add_statement($2);}
 		;
 
 statement: 	
@@ -296,7 +302,7 @@ statement:
 	 		{$$ = new ast::empty_stat();}
 	 	|type localDeclList ";" {
 			$$ = $2;
-			$$ -> insert_child($1);
+			$$ -> add_type($1);
 			}
 		|IF "(" expression ")" statement 
 			{$$ = new ast::if_stat($3, $5);}
@@ -314,8 +320,10 @@ statement:
 			{$$ = new ast::continue_stat();}
 		|BREAK ";"
 			{$$ = new ast::break_stat();}
-		|SUPER actualArgs ";"
-			{$$ = new ast::super_stat(new call_exp(new name_exp("<init>"), $2));} 
+		|SUPER actualArgs ";"{
+			name_exp *name = new ast::name_exp(new ast::name_exp("super"), "<init>", true);
+			$$ = new ast::super_stat(new call_exp(name, $2));
+			} 
 		|block 
 			{$$ = new ast::block_stat($1);}	
 		;
@@ -325,7 +333,7 @@ stmtNoIf:
 	 		{$$ = new ast::empty_stat();}
 	 	|type localDeclList ";"
 			{$$ = $2;
-			$$ -> insert_child($1);
+			$$ -> add_type($1);
 			}
 		|expression ";" 
 			{$$ = new ast::expression_stat($1);}
@@ -402,14 +410,14 @@ newArrExpr:
 			{$$ = new ast::new_array_exp(new ast::type_node($2));
 			std::list<ast::expression*>::iterator iter; 
 			for(iter = $3 -> begin(); iter != $3 -> end(); iter++){
-				$$ -> add_child(*iter);
+				$$ -> add_dimension(*iter);
 			} 
 		}
 	 	|NEW primativeType dimensionPlus {
 			$$ = new ast::new_array_exp($2);
 			std::list<ast::expression*>::iterator iter; 
 			for(iter = $3 -> begin(); iter != $3 -> end(); iter++){
-				$$ -> add_child(*iter);
+				$$ -> add_dimension(*iter);
 			}  
 		}
 		;
@@ -431,24 +439,35 @@ nonNewArrExpr:
 	    |THIS {$$ = new ast::name_exp("this");}
 		|"(" expression ")" {$$ = $2;}
 		|NEW IDENTIFIER actualArgs {			
-			$$ = new ast::call_exp(new ast::name_exp($2), $3);
+			expression *new_call = new ast::new_exp(new ast::class_type($2));
+			$$ = new ast::call_exp(new ast::name_exp(new_call, $2, true), $3);
 		}
-		|IDENTIFIER actualArgs {$$ = new ast::call_exp(new ast::name_exp($1), $2);}
-		|primary "." IDENTIFIER actualArgs {$$ = new ast::call_exp(new ast::name_exp($3) , $4);}
-		|SUPER "." IDENTIFIER actualArgs {$$ = new ast::call_exp(new ast::name_exp($3), $4);}
+		|IDENTIFIER actualArgs {
+			name_exp *name = new ast::name_exp(new ast::name_exp("this"), $1, true);
+			$$ = new ast::call_exp(name, $2);
+			}
+		|primary "." IDENTIFIER actualArgs {
+			$$ = new ast::call_exp(new ast::name_exp($1, $3, true) ,$4);
+			}
+		|SUPER "." IDENTIFIER actualArgs {
+			name_exp *name = new ast::name_exp(new ast::name_exp("super"), $3, true);
+			$$ = new ast::call_exp(name, $4);}
 		|arrExpr {$$ = $1;}
 		|fieldExpr {$$ = $1;}
 		;
 
 fieldExpr: 	
 		primary "." IDENTIFIER {
-			$1;
-			$$ = new ast::name_exp($3);}
-	 	|SUPER "." IDENTIFIER {$$ = new ast::name_exp($3);}
+			$$ = new ast::name_exp($1, $3, false);}
+	 	|SUPER "." IDENTIFIER {
+			 $$ = new ast::name_exp(new ast::name_exp("super"), $3, false);
+		}
 		;
 
-arrExpr:	IDENTIFIER dimension {$$ = new ast::array_ref(new ast::name_exp($1), $2);}
-       		|nonNewArrExpr dimension {$$ = new ast::array_ref($1, $2);}
+arrExpr:	
+		IDENTIFIER dimension {
+			$$ = new ast::array_ref(new ast::name_exp($1), $2);}
+       	|nonNewArrExpr dimension {$$ = new ast::array_ref($1, $2);}
 		;
 
 literal: 
@@ -468,10 +487,10 @@ actualArgs:
 exprList:	
 		expression {
 			$$ = new ast::expression_list();
-			$$ -> add_child($1);}
+			$$ -> add_expression($1);}
 		|expression "," exprList {
 			$$ = $3; 
-			$$ -> add_child($1);
+			$$ -> add_expression($1);
 			}
 		;
 %%

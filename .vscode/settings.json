@@ -33,6 +33,9 @@
         "ratio": "cpp",
         "deque": "cpp",
         "list": "cpp",
-        "string": "cpp"
+        "string": "cpp",
+        "__string": "cpp",
+        "string_view": "cpp",
+        "istream": "cpp"
     }
 }

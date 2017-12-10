@@ -31,7 +31,6 @@ public:
     virtual void visit_type_node(type_node *n)  = 0;
     virtual void visit_class_type(class_type *n)  = 0;
     virtual void visit_array_type_node(array_type_node *n)  = 0;
-    //virtual void visit_primate_type(primative_type *n)  = 0;
     virtual void visit_primative_int(primative_int *n)  = 0;
     virtual void visit_primative_bool(primative_bool *n)  = 0;
     virtual void visit_primative_char(primative_char *n)  = 0;
@@ -40,7 +39,6 @@ public:
     virtual void visit_init_node(init_node *n)  = 0;
     virtual void visit_meta_node(meta_node *n)  = 0;
     virtual void visit_statement_list(statement_list *n)  = 0;
-    //virtual void visit_statement  = 0; ABSTRACT 
     virtual void visit_empty_stat(empty_stat *n)  = 0;
     virtual void visit_decl_stat(decl_stat *n)  = 0;
     virtual void visit_local_node(local_node *n)  = 0;
@@ -58,7 +56,10 @@ public:
     virtual void visit_expression(expression *n)  = 0;
     virtual void visit_op_exp(op_exp *n)  = 0;
     virtual void visit_name_exp(name_exp *n)  = 0;
+
+    virtual void visit_new_exp(new_exp *n)  = 0;
     virtual void visit_new_array_exp(new_array_exp *n)  = 0;
+    
     virtual void visit_call_exp(call_exp *n)  = 0;
     virtual void visit_array_ref(array_ref *n)  = 0;
 

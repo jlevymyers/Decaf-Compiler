@@ -8,12 +8,21 @@
 using namespace ast;
 
 class build_symbols: public visitor {
+    std::stack<scope*> scope_stack; 
+    scope *outer; 
 public:
 
-    build_symbols();
+    build_symbols(scope* outer);
     ~build_symbols();
  
-    void build(scope* s);
+    void set_outer_scope(scope *s);
+
+    void push_scope(scope* s);
+    void pop_scope(scope *s);
+
+    scope* get_current_scope();
+    scope* get_outer_scope();
+
 
     void visit_ast(ast_node* n) ;
     void visit_children(ast_node* n) ; 
@@ -59,6 +68,7 @@ public:
     void visit_expression(expression *n); 
     void visit_op_exp(op_exp *n); 
     void visit_name_exp(name_exp *n); 
+    void visit_new_exp(new_exp *n);
     void visit_new_array_exp(new_array_exp *n); 
     void visit_call_exp(call_exp *n); 
     void visit_array_ref(array_ref *n); 
