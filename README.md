@@ -5,7 +5,7 @@ Compiler for Decaf Language
 To make the project, run 'make' in the top level directory. 
 
 # Running Decaf
-./decaf
+./decaf <file_name> 
 
 options:
   -p trace parsing 
