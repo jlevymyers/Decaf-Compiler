@@ -53,7 +53,6 @@ symbol_table* scope::get_table(){
 
 
 symbol* scope::find_scope(std::string name){
-    std::cout << "SCOPE: finding field/variable" << std::endl; 
     if(this -> sym_table != NULL)
         return this -> sym_table -> find_scope(name);
     else{
@@ -63,7 +62,6 @@ symbol* scope::find_scope(std::string name){
 
 
 symbol* scope::find_method(std::string name){
-    std::cout << "SCOPE: finding method" << std::endl; 
     if(this -> sym_table != NULL)
         return this -> sym_table -> find_method(name);
     else{
@@ -72,7 +70,6 @@ symbol* scope::find_method(std::string name){
 }
 
 symbol* scope::find(std::string name){
-    std::cout << "SCOPE: finding global" << std::endl; 
     if(this -> sym_table != NULL)
         return this -> sym_table -> find(name);
     else{

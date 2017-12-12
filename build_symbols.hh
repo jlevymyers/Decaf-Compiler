@@ -10,19 +10,17 @@ using namespace ast;
 class build_symbols: public visitor {
     std::stack<scope*> scope_stack; 
     scope *outer; 
+    void set_outer_scope(scope *s);
+    void push_scope(scope* s);
+    void pop_scope();
+    scope* get_current_scope();
+
 public:
 
     build_symbols(scope* outer);
     ~build_symbols();
  
-    void set_outer_scope(scope *s);
-
-    void push_scope(scope* s);
-    void pop_scope(scope *s);
-
-    scope* get_current_scope();
     scope* get_outer_scope();
-
 
     void visit_ast(ast_node* n) ;
     void visit_children(ast_node* n) ; 

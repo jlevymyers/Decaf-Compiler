@@ -357,7 +357,6 @@ void new_exp::accept(visitor *v){
 }
 
 type_node *new_exp::get_type(){
-	std::cout << "new type" << std::endl;
 	return (type_node*) this -> get_child(0); 
 }
 

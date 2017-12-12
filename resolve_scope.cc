@@ -8,14 +8,12 @@ resolve_scope::resolve_scope(): visitor(){
     
     this -> current_class = NULL;
     build_runtime();
-
-    std::cout << this -> get_outer_scope() << std::endl;
-
 }
 
 resolve_scope::~resolve_scope(){}
 
 void resolve_scope::build_runtime(){
+    std::cout << "SCOPE: adding runtime symbols" << std::endl;
     outer_scope* out = new outer_scope();
     out -> set_parent_scope(NULL);
     out -> set_super_scope(NULL);
@@ -59,7 +57,6 @@ void resolve_scope::build_runtime(){
  **/
 
 method_node* resolve_scope::build_method(std::string name, type_node* ret_type, type_node* arg_type, std::string arg_name){
-    std::cout << "building method: " << name << std::endl;
     formal_list* method_args = new formal_list();  
     if((arg_type != NULL) && (!(arg_name == ""))){
         formal_node *arg = new formal_node(arg_type, arg_name); 
@@ -67,14 +64,16 @@ method_node* resolve_scope::build_method(std::string name, type_node* ret_type, 
     }
     method_body* mbody = new method_body(method_args, new statement_list());
     method_node* m = new method_node(MOD_PUBLIC, name, ret_type, mbody);
-    std::cout << "built method: " << name << std::endl;
+    std::cout << "SCOPE: added runtime method: " << name << std::endl;
     return m;
 }
 
 void resolve_scope::push_scope(scope* s){
+    std::cout << "SCOPE: entering scope: " << s << std::endl;
     this -> scope_stack.push(s);
 }
-void resolve_scope::pop_scope(scope *s){
+void resolve_scope::pop_scope(){
+    std::cout << "SCOPE: leaving scope: " << this -> get_current_scope() << std::endl;
     this -> scope_stack.pop(); 
 }
 scope* resolve_scope::get_current_scope(){
@@ -87,12 +86,20 @@ scope* resolve_scope::get_outer_scope(){
 
 void resolve_scope::set_current_class(class_node *c){
     if(this -> current_class != NULL){
-        std::cout << "cannot define nested classes" << std::endl;
+        std::cout << "ERROR: cannot define nested classes" << std::endl;
     }
     else{
-        std::cout << "setting current class: " << c -> get_name() << std::endl;
         this -> current_class = c;
     }
+}
+
+class_node *resolve_scope::get_current_class(){
+    assert(this -> current_class);
+    return this -> current_class; 
+}
+
+void resolve_scope::pop_current_class(){
+    this -> current_class = NULL;
 }
 
 void resolve_scope::visit_children(ast_node* n){
@@ -123,12 +130,10 @@ void resolve_scope::visit_member_list(member_list *n){
     n -> set_outer_scope(this -> resolve_outer_scope);
     std::string class_name = this -> get_current_class() -> get_name();
 
-    std::cout << "resolving member scope in class: " << class_name << std::endl;
     this -> push_scope(n);
     visit_children(n);
 
-    //adding default constructor
-
+    //add default constructor
     symbol *ctor = n -> find_method(class_name);
 
     if(ctor == NULL){
@@ -136,12 +141,12 @@ void resolve_scope::visit_member_list(member_list *n){
         constructor_node* default_ctor = new constructor_node(MOD_PUBLIC, class_name, ctor_body);
         n -> add_member(default_ctor);
         n -> add_symbol(default_ctor);
-        std::cout << "adding default constructor: " << class_name << std::endl;
+        std::cout << "INSERTING: default constructor: " << class_name << std::endl;
     }
     else{
-        std::cout << "found default constructor: " << class_name << std::endl;
+        std::cout << "FOUND: default constructor: " << class_name << std::endl;
     }
-    this -> pop_scope(n);
+    this -> pop_scope();
 }
 
 void resolve_scope::visit_super_node(super_node *n){
@@ -164,9 +169,8 @@ void resolve_scope::visit_method_body(method_body *n){
     n -> set_super_scope(NULL);
     n -> set_parent_scope(this -> get_current_scope()); 
     n -> set_outer_scope(this -> resolve_outer_scope);
-    std::cout << "resolving method scope" << std::endl;
 
-    //add the implicit this argument
+    //add the implicit "this" argument
     std::string current_class = this -> get_current_class() -> get_name(); 
     class_type *this_class = new class_type(current_class);
     formal_node *this_formal = new formal_node(this_class, "this");
@@ -174,7 +178,7 @@ void resolve_scope::visit_method_body(method_body *n){
 
     this -> push_scope(n);
     visit_children(n);
-    this -> pop_scope(n);
+    this -> pop_scope();
 }
 void resolve_scope::visit_constructor_node(constructor_node *n){
     this -> get_current_scope() -> add_symbol(n);
@@ -258,54 +262,52 @@ void resolve_scope::visit_block_node(block_node *n) {
     n -> set_super_scope(NULL); 
     n -> set_parent_scope(this -> get_current_scope()); 
     n -> set_outer_scope(this -> resolve_outer_scope);
-    std::cout << "resolving blockscope" << std::endl;
+    std::cout << "SCOPE: entering resolving blockscope" << std::endl;
     this -> push_scope(n);
     visit_children(n);
-    this -> pop_scope(n);
+    this -> pop_scope();
 }
 
 void resolve_scope::visit_super_stat(super_stat *n) { 
         visit_children(n);
-    }
+}
 void resolve_scope::visit_expression(expression *n) { 
         visit_children(n);
-    }
+}
 void resolve_scope::visit_op_exp(op_exp *n){
           visit_children(n);
-     }
+}
 void resolve_scope::visit_name_exp(name_exp *n) { 
         visit_children(n);
-    }
+}
 void resolve_scope::visit_new_exp(new_exp *n){
-    std::cout << "new" << std::endl;
 }
 void resolve_scope::visit_new_array_exp(new_array_exp *n){
         visit_children(n);
-    }
+}
 void resolve_scope::visit_call_exp(call_exp *n) {
         visit_children(n);
-    }
+}
 void resolve_scope::visit_array_ref(array_ref *n) {
           visit_children(n);
-     }
+}
 
-//void resolve_scope::visit_literal ABSTRACT 
 void resolve_scope::visit_null_literal(null_literal *n) { 
         visit_children(n);
-    }
+}
 void resolve_scope::visit_bool_literal(bool_literal *n) {
           visit_children(n);
-     }
+}
 void resolve_scope::visit_int_literal(int_literal *n) { 
         visit_children(n);
-    }
+}
 void resolve_scope::visit_char_literal(char_literal *n) { 
         visit_children(n);
-    }
+}
 void resolve_scope::visit_string_literal(string_literal *n) {
         visit_children(n);
-    }
+}
 void resolve_scope::visit_expression_list(expression_list *n) {
           visit_children(n);
-     }
+}
         

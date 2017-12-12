@@ -11,47 +11,42 @@ symbol_table::symbol_table(){
 }
 
 void symbol_table::add_symbol(ast::symbol *sym){
-    cout << "inserted symbol: " << sym -> get_name() << ", field: " << this << endl;
     switch(sym -> get_symbol_type()){
-	  case ast::SYM_FORMAL_ARG: {
-        this -> variables[sym -> get_name()] = sym;
-        cout << "created variable" << endl;
-        break;
-      }
-	case ast::SYM_FIELD: {
-        this -> fields[sym -> get_name()] = sym;
-        cout << "created field" << endl;
-        break;
-      }
-	case ast::SYM_LOCAL_VAR: {
-        this -> variables[sym -> get_name()] = sym;
-        cout << "created local" << endl;
-        break;
-       }
-	   // case ast::SYM_CLASS: 
-    case ast::SYM_CLASS: {
-            cout << &this -> classes << endl;
-            this -> classes[sym -> get_name()] =  sym;
-            cout << "created classs" << endl;
+        case ast::SYM_FORMAL_ARG: {
+            this -> variables[sym -> get_name()] = sym;
+            cout << "TABLE: added variable: " << sym -> get_name() << endl;
             break;
-       }
-    case ast::SYM_CTOR: {
-        this -> methods[sym -> get_name()] = sym;
-        cout << "created constructor" << endl;
-        break;
-    }
-    case ast::SYM_METHOD: {
-        this -> methods[sym -> get_name()] = sym;
-        cout << "created method" << endl;
-        break;
-    }
-    case ast::SYM_NONE: {
-        cout << "attempted to insert non-symbol: " << sym -> get_name() << sym -> get_symbol_type() << endl;
-        break;
-    }
-    default: {
-        cout << "reached default" << endl;
-    }
+        }
+        case ast::SYM_FIELD: {
+            this -> fields[sym -> get_name()] = sym;
+            cout << "TABLE: added field: " << sym -> get_name() <<  endl;
+            break;
+        }
+        case ast::SYM_LOCAL_VAR: {
+            this -> variables[sym -> get_name()] = sym;
+            cout << "TABLE: added local: " << sym -> get_name() << endl;
+            break;
+        }
+        // case ast::SYM_CLASS: 
+        case ast::SYM_CLASS: {
+            this -> classes[sym -> get_name()] =  sym;
+            cout << "TABLE: added classs: " << sym -> get_name() << endl;
+            break;
+        }
+        case ast::SYM_CTOR: {
+            this -> methods[sym -> get_name()] = sym;
+            cout << "TABLE: added constructor: " << sym -> get_name() << endl;
+            break;
+        }
+        case ast::SYM_METHOD: {
+            this -> methods[sym -> get_name()] = sym;
+            cout << "TABLE: added method: " << sym -> get_name() << endl;
+            break;
+        }
+        case ast::SYM_NONE: {
+            cout << "ERROR: attempted to insert non-symbol: " << sym -> get_name() << sym -> get_symbol_type() << endl;
+            break;
+        }
     }
 }
 

@@ -256,7 +256,6 @@ public:
 	class_type(std::string id);
 
 	scope *get_associated_scope(){
-		std::cout << "getting associated scope: " << this -> class_scope << std::endl;
 		return this -> class_scope;
 	}
 

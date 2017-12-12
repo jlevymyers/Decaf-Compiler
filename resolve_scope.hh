@@ -13,28 +13,21 @@ private:
     scope* resolve_outer_scope;
     class_node *current_class; 
     void build_runtime();
+    void push_scope(scope* s);
+    void pop_scope();
     method_node *build_method(std::string name, type_node* ret_type, type_node* arg_type, std::string arg_name);
+    void set_current_class(class_node *c); 
+    void pop_current_class();
+    scope* get_current_scope();
+    class_node *get_current_class();
 public:
 
     resolve_scope();
     ~resolve_scope();
 
-    void push_scope(scope* s);
-    void pop_scope(scope *s);
-
-    scope* get_current_scope();
+    //needed for semantic analysis
     scope* get_outer_scope();
 
-    void set_current_class(class_node *c); 
-
-    void pop_current_class(){
-        this -> current_class = NULL;
-    }
-
-    class_node *get_current_class(){
-        assert(this -> current_class);
-        return this -> current_class; 
-    }
 
     void visit_ast(ast_node* n) ;
     void visit_children(ast_node* n) ; 
