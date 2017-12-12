@@ -19,9 +19,6 @@ class supports a visitor pattern. The transformations on the abstract syntax tre
 two implemented visitor classes. One traverses the AST keeping track of scope, and builds the symbol table. The second visitors 
 resolves the symbols. This two pass approach is required because of forward references. 
 
-This compiler is reentrant and does not store state globally. The scanner and parsing is all run through the driver class, 
-and therefore information does not need to be transfered between objects using global state. 
-
 # Project Details 
 ast_node.hh -- virtual abstract syntax tree node 
 
