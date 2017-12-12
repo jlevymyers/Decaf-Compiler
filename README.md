@@ -48,7 +48,7 @@ scanner.l        -- flex object that tokenizes a decaf program
 
 parser.yy        -- bison object that parses a decaf program
 
-The decaf pipeline: 
+The decaf order of execution: 
 
 decaf source --> scanner.l --> parser.yy --> resolve_scope --> build_symbols --> code_gen --> LLVM compiler
 
