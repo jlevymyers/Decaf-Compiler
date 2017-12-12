@@ -22,9 +22,9 @@ resolves the symbols. This two pass approach is required because of forward refe
 This compiler is reentrant and does not store state globally. The scanner and parsing is all run through the driver class, 
 and therefore information does not need to be transfered between objects using global state. 
 
-#Project Details 
-ast_node.hh -- virtual abstract syntax tree node 
-ast.hh -- definitions for various nodes in the decaf AST
+# Project Details 
+ast_node.hh -- virtual abstract syntax tree node \\
+ast.hh -- definitions for various nodes in the decaf AST \\
 scope.hh -- virtual class extended by nodes in the AST that represent scope 
 symbol.hh -- virtual class extended by nodes in the AST that are symbols 
 symbol_table.hh -- map which stores symbols. Each scope has a symbol table, and an additional outer scope for global objects 
