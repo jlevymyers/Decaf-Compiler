@@ -4,7 +4,7 @@ Compiler for Decaf Language
 # Making Decaf
 To make the project, run 'make' in the top level directory. 
 
-#Running Decaf
+# Running Decaf
 ./decaf
 
 options:
